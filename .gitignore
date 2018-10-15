@@ -4,10 +4,18 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # User-specific files
+*.css
+*.config
+*.log.txt
+*.sln.docstates
 *.suo
 *.user
 *.userosscache
-*.sln.docstates
+src/SerilogPlay/Logs/
+src/SerilogPlay/Logs/*.log--txt
+src/SerilogPlay/appsettings.json
+src/SerilogPlay/wwwroot/lib
+src/SerilogPlay/wwwroot/js/*.min.js
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
