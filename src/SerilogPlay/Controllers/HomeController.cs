@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using SerilogPlay.Models;
-
-namespace SerilogPlay.Controllers
+﻿namespace SerilogPlay.Controllers
 {
+	using Microsoft.AspNetCore.Authorization;
+	using Microsoft.AspNetCore.Diagnostics;
+	using Microsoft.AspNetCore.Mvc;
+	using SerilogPlay.Models;
+	using System.Diagnostics;
+
 	public class HomeController : Controller
 	{
 		public IActionResult Index()
@@ -22,6 +20,7 @@ namespace SerilogPlay.Controllers
 			return View();
 		}
 
+		[Authorize]
 		public IActionResult Contact()
 		{
 			ViewData["Message"] = "Your contact page.";
@@ -37,7 +36,21 @@ namespace SerilogPlay.Controllers
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
 		public IActionResult Error()
 		{
-			return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+			ErrorViewModel modelResult = new ErrorViewModel() { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
+			if (HttpContext.Features.Get<IStatusCodeReExecuteFeature>() is StatusCodeReExecuteFeature reExecuteFeature)
+			{
+				modelResult.OriginalPathBase = reExecuteFeature?.OriginalPathBase;
+				modelResult.OriginalQueryString = reExecuteFeature?.OriginalQueryString;
+			}
+			if (HttpContext.Features.Get<IExceptionHandlerPathFeature>() is ExceptionHandlerFeature exceptionFeature)
+			{
+				modelResult.RouteOfException = exceptionFeature?.Path;
+				modelResult.ErrorSource = exceptionFeature?.Error?.Source;
+				modelResult.ErrorTargetSiteName = exceptionFeature?.Error?.TargetSite.Name;
+				modelResult.ErrorStackTrace = exceptionFeature?.Error?.StackTrace;
+				modelResult.ErrorMessage = $"{exceptionFeature?.Error?.InnerException?.Message} | {exceptionFeature.Error?.Message}";
+			}
+			return View(viewName: "Error", model: modelResult);
 		}
 	}
 }
