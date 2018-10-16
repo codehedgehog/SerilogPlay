@@ -1,15 +1,13 @@
-﻿
-namespace SerilogPlay
+﻿namespace SerilogPlay
 {
-
 	using Microsoft.AspNetCore;
 	using Microsoft.AspNetCore.Hosting;
 	using Microsoft.Extensions.Configuration;
 	using Microsoft.Extensions.Logging;
 	using Serilog;
+	using Serilog.Exceptions;
 	using System;
 	using System.IO;
-
 
 	public class Program
 	{
@@ -22,13 +20,17 @@ namespace SerilogPlay
 
 		private static string _environmentName;
 
-
 		public static void Main(string[] args)
 		{
 			Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
 			Log.Logger = new LoggerConfiguration()
-							.ReadFrom.Configuration(Configuration)
-							.CreateLogger();
+				.Enrich.FromLogContext()
+				.Enrich.WithMachineName()
+				.Enrich.WithThreadId()
+				.Enrich.WithExceptionDetails()
+				.ReadFrom.Configuration(Configuration)
+				.WriteTo.Console()
+				.CreateLogger();
 			try
 			{
 				Log.Information("Getting the motors running...");
@@ -52,7 +54,9 @@ namespace SerilogPlay
 				 {
 					 config.ClearProviders();
 					 _environmentName = hostingContext.HostingEnvironment.EnvironmentName;
-				 }).UseStartup<Startup>()
+				 })
+				 .UseKestrel(c => c.AddServerHeader = false)
+				 .UseStartup<Startup>()
 				 .UseConfiguration(Configuration)
 				 .UseSerilog();
 			;
