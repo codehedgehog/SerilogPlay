@@ -58,8 +58,8 @@
 			{
 				// Display friendly error pages for any non-success case.
 				// This will handle any situation where a status code is >= 400 and < 600, and no response body has already been generated.
-				appBuilder.UseStatusCodePagesWithReExecute(pathFormat: "/Home/Error", queryFormat: "?statusCode={0}");
-				//app.UseStatusCodePagesWithReExecute("/error/{0}");
+				// appBuilder.UseStatusCodePagesWithReExecute(pathFormat: "/Home/Error", queryFormat: "?statusCode={0}");
+				app.UseStatusCodePagesWithReExecute("/error/{0}");
 				// Handle unhandled errors
 				appBuilder.UseExceptionHandler("/Home/Error");
 				//app.UseExceptionHandler("/error/500");

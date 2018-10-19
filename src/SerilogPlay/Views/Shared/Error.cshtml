@@ -42,21 +42,21 @@
 		{
 			<p><strong>Target Site:</strong> <code>@Model.ErrorTargetSiteName</code></p>
 		}
-		@if (Model.ShowOriginalPathBase)
-		{
-			<p><div><strong>Stack Trace:</strong></div><div>@Model.ErrorStackTrace</div></p>
-		}
 		@if (Model.ShowErrorStackTrace)
 		{
 			<p><div><strong>Stack Trace:</strong></div><div>@Model.ErrorStackTrace</div></p>
 		}
+		@if (Model.ShowOriginalPath)
+		{
+			<p><strong>Original Path:</strong> <code>@Model.OriginalPath</code></p>
+		}
 		@if (Model.ShowOriginalPathBase)
 		{
-			<p><div><strong>Stack Trace:</strong></div><div>@Model.OriginalPathBase</div></p>
+			<p><strong>Original Path Base:</strong> <code>@Model.OriginalPathBase</code></p>
 		}
 		@if (Model.ShowOriginalQueryString)
 		{
-			<p><div><strong>Stack Trace:</strong></div><div>@Model.OriginalQueryString</div></p>
+			<p><strong>Original Query String:</strong> <code>@Model.OriginalQueryString</code></p>
 		}
 		@if (Model.ShowRequestId)
 		{

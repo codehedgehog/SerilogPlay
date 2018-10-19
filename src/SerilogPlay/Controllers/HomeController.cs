@@ -39,6 +39,7 @@
 			ErrorViewModel modelResult = new ErrorViewModel() { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
 			if (HttpContext.Features.Get<IStatusCodeReExecuteFeature>() is StatusCodeReExecuteFeature reExecuteFeature)
 			{
+				modelResult.OriginalPath = reExecuteFeature?.OriginalPath;
 				modelResult.OriginalPathBase = reExecuteFeature?.OriginalPathBase;
 				modelResult.OriginalQueryString = reExecuteFeature?.OriginalQueryString;
 			}
