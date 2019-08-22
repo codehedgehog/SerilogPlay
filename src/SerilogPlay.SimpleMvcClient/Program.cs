@@ -14,7 +14,8 @@
 	using System.IO;
 	using System.Linq;
 	using System.Reflection;
-	using Serilog.Enrichers.AspNetCore.HttpContext;
+	using Serilog.Formatting.Compact;
+	using Serilog.Enrichers.AspnetcoreHttpcontext;
 
 	public class Program
 	{
@@ -30,25 +31,11 @@
 		public static int Main(string[] args)
 		{
 			Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
-			var name = Assembly.GetExecutingAssembly().GetName();
-
-			Log.Logger = new LoggerConfiguration()
-				.MinimumLevel.Debug()
-				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-				.Enrich.FromLogContext()
-				.Enrich.WithMachineName()
-				.Enrich.WithProperty("Assembly", $"{name.Name}")
-				.Enrich.WithProperty("Version", $"{name.Version}")
-				.Enrich.WithThreadId()
-				.Enrich.WithExceptionDetails()
-				.ReadFrom.Configuration(Configuration)
-				.WriteTo.Console()
-				.CreateLogger();
 			try
 			{
-				Log.Information("Getting the motors running...");
-				Log.Information("Starting web host");
 				CreateWebHostBuilder(args).Build().Run();
+				Log.Debug("Getting the motors running...");
+				Log.Debug("Starting web host");
 				return 0;
 			}
 			catch (Exception ex)
@@ -75,7 +62,23 @@
 				 .ConfigureKestrel(c => c.AddServerHeader = false)
 				 .UseStartup<Startup>()
 				 .UseConfiguration(Configuration)
-				 .UseSerilog();
+				 .UseSerilog((provider, context, loggerConfig) =>
+				 {
+					 var name = Assembly.GetExecutingAssembly().GetName();
+					 loggerConfig
+						 .MinimumLevel.Debug()
+						 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+						 .Enrich.FromLogContext()
+						 .Enrich.WithExceptionDetails()
+						 .Enrich.WithMachineName()
+						 .Enrich.WithProperty("Assembly", $"{name.Name}")
+						 .Enrich.WithProperty("Version", $"{name.Version}")
+						 .Enrich.WithAspnetcoreHttpcontext(provider)
+						 .Enrich.WithThreadId()
+						 .ReadFrom.Configuration(Configuration)
+						 .WriteTo.Console();
+				 });
+
 		}
 
 		public static void AddCustomContextInfo(IHttpContextAccessor ctx, LogEvent logEvent, ILogEventPropertyFactory pf)
