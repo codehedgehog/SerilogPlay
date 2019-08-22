@@ -16,6 +16,10 @@ src/SerilogPlay.SimpleMvcClient/appsettings.json
 src/SerilogPlay.SimpleMvcClient/wwwroot/lib
 src/SerilogPlay.SimpleMvcClient/wwwroot/js/*.min.js
 
+src/SerilogPlay.SimpleApi/Logs/
+src/SerilogPlay.SimpleApi/appsettings.json
+
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

@@ -36,10 +36,11 @@ try{
 + install-package Serilog.Exceptions
 + install-package Serilog.Enrichers.AspNetCore.HttpContext
 
-+ install-packagte Serilog.Formatting.Compact
-
++ install-package Serilog.Formatting.Compact
 
 + install-package IdentityModel
+
++ install-package IdentityServer4.AccessTokenValidation
 
 ```
 

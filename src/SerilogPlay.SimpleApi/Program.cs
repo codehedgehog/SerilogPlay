@@ -1,4 +1,4 @@
-﻿namespace SerilogPlay.SimpleMvcClient
+﻿namespace SerilogPlay.SimpleApi
 {
 	using Microsoft.AspNetCore;
 	using Microsoft.AspNetCore.Hosting;
@@ -9,12 +9,11 @@
 	using Serilog.Core;
 	using Serilog.Events;
 	using Serilog.Exceptions;
-	using SerilogPlay.SimpleMvcClient.Models;
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
 	using System.Reflection;
-	using Serilog.Enrichers.AspNetCore.HttpContext;
 
 	public class Program
 	{
@@ -31,7 +30,6 @@
 		{
 			Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
 			var name = Assembly.GetExecutingAssembly().GetName();
-
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Debug()
 				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -47,7 +45,7 @@
 			try
 			{
 				Log.Information("Getting the motors running...");
-				Log.Information("Starting web host");
+				Log.Information("Starting API web host");
 				CreateWebHostBuilder(args).Build().Run();
 				return 0;
 			}
@@ -67,22 +65,21 @@
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args)
 		{
 			return WebHost.CreateDefaultBuilder(args)
-				 .ConfigureLogging((hostingContext, config) =>
-				 {
-					 config.ClearProviders();
-					 _environmentName = hostingContext.HostingEnvironment.EnvironmentName;
-				 })
-				 .ConfigureKestrel(c => c.AddServerHeader = false)
-				 .UseStartup<Startup>()
-				 .UseConfiguration(Configuration)
-				 .UseSerilog();
+				.ConfigureLogging((hostingContext, config) =>
+				{
+					config.ClearProviders();
+					_environmentName = hostingContext.HostingEnvironment.EnvironmentName;
+				})
+				.ConfigureKestrel(c => c.AddServerHeader = false)
+				.UseStartup<Startup>()
+				.UseConfiguration(Configuration)
+				.UseSerilog();
 		}
 
-		public static void AddCustomContextInfo(IHttpContextAccessor ctx, LogEvent logEvent, ILogEventPropertyFactory pf)
+		public static void AddCustomContextInfo(IHttpContextAccessor ctx, LogEvent le, ILogEventPropertyFactory pf)
 		{
-			var context = ctx.HttpContext;
+			HttpContext context = ctx.HttpContext;
 			if (context == null) return;
-
 			var userInfo = context.Items["my-custom-info"] as UserInfo;
 			if (userInfo == null)
 			{
@@ -97,7 +94,13 @@
 				context.Items["my-custom-info"] = userInfo;
 			}
 
-			logEvent.AddPropertyIfAbsent(pf.CreateProperty("UserInfo", userInfo, true));
+			le.AddPropertyIfAbsent(pf.CreateProperty("UserInfo", userInfo, true));
 		}
+	}
+
+	public class UserInfo
+	{
+		public string Name { get; set; }
+		public Dictionary<string, string> Claims { get; set; }
 	}
 }
