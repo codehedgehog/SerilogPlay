@@ -34,8 +34,12 @@ try{
 + install-package Serilog.Enrichers.Thread
 
 + install-package Serilog.Exceptions
-+ Install-Package Serilog.Enrichers.AspNetCore.HttpContext
++ install-package Serilog.Enrichers.AspNetCore.HttpContext
 
++ install-packagte Serilog.Formatting.Compact
+
+
++ install-package IdentityModel
 
 ```
 
