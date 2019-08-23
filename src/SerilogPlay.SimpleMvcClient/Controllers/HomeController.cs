@@ -4,8 +4,8 @@
 	using Microsoft.AspNetCore.Authorization;
 	using Microsoft.AspNetCore.Diagnostics;
 	using Microsoft.AspNetCore.Mvc;
-		using Newtonsoft.Json;
-		using Newtonsoft.Json.Linq;
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
 	using Serilog;
 	using SerilogPlay.SimpleMvcClient.Models;
 	using System;
@@ -56,7 +56,7 @@
 			var token = await HttpContext.GetTokenAsync("access_token");
 			client.SetBearerToken(token);
 			var response = await GetWithHandlingAsync(client, "https://localhost:44369/api/Values");
-			ViewBag.JsonResult = JArray.Parse(await response.Content.ReadAsStringAsync()).ToString();
+			ViewBag.JsonApiResult = JArray.Parse(await response.Content.ReadAsStringAsync()).ToString();
 			return View();
 		}
 
@@ -120,7 +120,7 @@
 			if (!response.IsSuccessStatusCode)
 			{
 				string error = string.Empty;
-				string id =  string.Empty;
+				string id = string.Empty;
 
 				if (response.Content.Headers.ContentLength > 0)
 				{

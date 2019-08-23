@@ -6,9 +6,10 @@
 	using Microsoft.Extensions.Configuration;
 	using Microsoft.Extensions.Logging;
 	using Serilog;
-	using Serilog.Core;
-	using Serilog.Events;
-	using Serilog.Exceptions;
+	using Serilog.Context;
+	using Serilog.Enrichers.AspnetcoreHttpcontext;
+		using Serilog.Events;
+		using Serilog.Exceptions;
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
@@ -29,24 +30,11 @@
 		public static int Main(string[] args)
 		{
 			Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
-			var name = Assembly.GetExecutingAssembly().GetName();
-			Log.Logger = new LoggerConfiguration()
-				.MinimumLevel.Debug()
-				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-				.Enrich.FromLogContext()
-				.Enrich.WithMachineName()
-				.Enrich.WithProperty("Assembly", $"{name.Name}")
-				.Enrich.WithProperty("Version", $"{name.Version}")
-				.Enrich.WithThreadId()
-				.Enrich.WithExceptionDetails()
-				.ReadFrom.Configuration(Configuration)
-				.WriteTo.Console()
-				.CreateLogger();
 			try
 			{
-				Log.Information("Getting the motors running...");
-				Log.Information("Starting API web host");
 				CreateWebHostBuilder(args).Build().Run();
+				Log.Debug("Getting the motors running...");
+				Log.Debug("Starting API web host");
 				return 0;
 			}
 			catch (Exception ex)
@@ -73,34 +61,50 @@
 				.ConfigureKestrel(c => c.AddServerHeader = false)
 				.UseStartup<Startup>()
 				.UseConfiguration(Configuration)
-				.UseSerilog();
+				.UseSerilog((provider, context, loggerConfig) =>
+				{
+					var name = Assembly.GetExecutingAssembly().GetName();
+					loggerConfig
+						 .Enrich.FromLogContext()
+						 .Enrich.WithExceptionDetails()
+						 .Enrich.WithAspnetcoreHttpcontext(serviceProvider: provider, customMethod: CustomEnricherLogic)
+						 .Enrich.WithProperty("Assembly", $"{name.Name}")
+						 .Enrich.WithProperty("Version", $"{name.Version}")
+						 .Enrich.WithMachineName()
+						 .Enrich.WithThreadId()
+						 .ReadFrom.Configuration(Configuration)
+						 .WriteTo.Console();
+				});
 		}
 
-		public static void AddCustomContextInfo(IHttpContextAccessor ctx, LogEvent le, ILogEventPropertyFactory pf)
+		private static CustomEnricherHttpContextInfo CustomEnricherLogic(IHttpContextAccessor ctx) // LogEvent logEvent, ILogEventPropertyFactory pf
 		{
 			HttpContext context = ctx.HttpContext;
-			if (context == null) return;
-			var userInfo = context.Items["my-custom-info"] as UserInfo;
-			if (userInfo == null)
+			if (context == null) return null;
+
+			CustomEnricherHttpContextInfo theInfo = new CustomEnricherHttpContextInfo()
 			{
-				var user = context.User.Identity;
-				if (user == null || !user.IsAuthenticated) return;
-				var i = 0;
-				userInfo = new UserInfo
-				{
-					Name = user.Name,
-					Claims = context.User.Claims.ToDictionary(x => $"{x.Type} ({i++})", y => y.Value)
-				};
-				context.Items["my-custom-info"] = userInfo;
+				RemoteIpAddress = context.Connection.RemoteIpAddress.MapToIPv4().ToString(),
+				FullRequestPath = $"{context.Request.Method} {context.Request.Scheme}://{context.Request.Host.ToString().Trim('/')}{context.Request.Path.ToString()}{((context.Request.QueryString.HasValue) ? context.Request.QueryString.Value : null)}",
+			};
+			if (!string.IsNullOrWhiteSpace(theInfo.RemoteIpAddress)) LogContext.PushProperty(name: "RemoteIPAddress", value: theInfo.RemoteIpAddress);
+			if (!string.IsNullOrWhiteSpace(theInfo.FullRequestPath)) LogContext.PushProperty(name: "FullRequestPath", value: theInfo.FullRequestPath);
+			if (context.Request.Query != null && context.Request.Query.Count > 0) theInfo.Query = context.Request.Query.Select(q => new KeyValuePair<string, string>(q.Key, q.Value)).ToList();
+			if (context.Request.Headers.ContainsKey("Authorization"))
+			{
+				theInfo.Authorization = context.Request.Headers["Authorization"];
+				LogContext.PushProperty(name: "Authorization", value: theInfo.Authorization);
 			}
-
-			le.AddPropertyIfAbsent(pf.CreateProperty("UserInfo", userInfo, true));
+			if (context.Request.Headers.ContainsKey("X-Forwarded-For")) theInfo.RemoteIpAddress = context.Request.Headers["X-Forwarded-For"];
+			return theInfo;
 		}
-	}
 
-	public class UserInfo
-	{
-		public string Name { get; set; }
-		public Dictionary<string, string> Claims { get; set; }
+		private class CustomEnricherHttpContextInfo
+		{
+			public string FullRequestPath { get; set; }
+			public string RemoteIpAddress { get; set; }
+			public string Authorization { get; set; }
+			public List<KeyValuePair<string, string>> Query { get; set; }
+		}
 	}
 }

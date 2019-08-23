@@ -29,12 +29,11 @@ try{
 + install-package Serilog.Sinks.Email
 + install-package Serilog.Sinks.MSSqlServer
 
++ install-package Serilog.Enrichers.AspnetcoreHttpcontext
 + install-package Serilog.Enrichers.Environment
 + install-package Serilog.Enrichers.Process
 + install-package Serilog.Enrichers.Thread
-
 + install-package Serilog.Exceptions
-+ install-package Serilog.Enrichers.AspNetCore.HttpContext
 
 + install-package Serilog.Formatting.Compact
 

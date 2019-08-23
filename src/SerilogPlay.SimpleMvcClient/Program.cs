@@ -8,7 +8,6 @@
 	using Serilog;
 	using Serilog.Context;
 	using Serilog.Enrichers.AspnetcoreHttpcontext;
-	using Serilog.Events;
 	using Serilog.Exceptions;
 	using System;
 	using System.Collections.Generic;
@@ -104,7 +103,6 @@
 			}
 			if (context.Request.Query != null && context.Request.Query.Count > 0)
 			{
-				int i = 0;
 				theInfo.Query = context.Request.Query.Select(q => new KeyValuePair<string, string>(q.Key, q.Value)).ToList();
 			}
 			if (context.Request.Headers.ContainsKey("X-Forwarded-For")) theInfo.RemoteIpAddress = context.Request.Headers["X-Forwarded-For"];
@@ -140,6 +138,5 @@
 			public string XOriginalFor { get; set; }
 			public string XOriginalProto { get; set; }
 		}
-
 	}
 }

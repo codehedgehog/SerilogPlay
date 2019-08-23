@@ -1,11 +1,9 @@
-﻿
-namespace SerilogPlay.SimpleApi.Controllers
+﻿namespace SerilogPlay.SimpleApi.Controllers
 {
-
-	using System;
-	using System.Collections.Generic;
 	using Microsoft.AspNetCore.Authorization;
 	using Microsoft.AspNetCore.Mvc;
+	using System;
+	using System.Collections.Generic;
 
 	[Route("api/[controller]")]
 	[Authorize]

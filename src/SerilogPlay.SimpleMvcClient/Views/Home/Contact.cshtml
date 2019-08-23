@@ -5,7 +5,7 @@
 
 @if (Context.User != null && Context.User.Identity.IsAuthenticated)
 {
-	<h3>Hello, <b>@User.Identity.Name</b></h3>
+<h3>Hello, <b>@User.Identity.Name</b></h3>
 }
 
 <p>@ViewData["Message"]</p>

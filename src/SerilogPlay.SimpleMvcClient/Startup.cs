@@ -80,15 +80,19 @@
 				if (context.Request.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase)) context.Request.Scheme = "https";
 				await next.Invoke();
 			});
-			app.UseDeveloperExceptionPage();
-			app.UseDatabaseErrorPage();
+
+			if (env.IsDevelopment())
+			{
+				//app.UseDeveloperExceptionPage();
+				//app.UseDatabaseErrorPage();
+			}
 
 			// Display friendly error pages for any non-success case.  This is only for client side, and not for API,
 			// This will handle any situation where a status code is >= 400 and < 600, and no response body has already been generated.
 			// appBuilder.UseStatusCodePagesWithReExecute(pathFormat: "/Home/Error", queryFormat: "?statusCode={0}");
-			app.UseStatusCodePagesWithReExecute(pathFormat:"/home/error", queryFormat: "?statusCode={0}");
+			app.UseStatusCodePagesWithReExecute(pathFormat: "/home/error", queryFormat: "?statusCode={0}");
 			// Handle unhandled errors
-			app.UseExceptionHandler("/Home/Error");
+			app.UseExceptionHandler("/home/error");
 			//app.UseExceptionHandler("/error/500");
 
 			app.UseHsts();
@@ -97,8 +101,6 @@
 			app.UseAuthentication();
 			app.UseStaticFiles();
 			app.UseCookiePolicy(new CookiePolicyOptions() { MinimumSameSitePolicy = SameSiteMode.None });
-
-
 
 			app.UseMvc(routes =>
 			{

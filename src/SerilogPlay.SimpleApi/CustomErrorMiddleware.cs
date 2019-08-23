@@ -1,5 +1,4 @@
-﻿
-namespace SerilogPlay.SimpleApi
+﻿namespace SerilogPlay.SimpleApi
 {
 	using Microsoft.AspNetCore.Diagnostics;
 	using Microsoft.AspNetCore.Http;
@@ -7,7 +6,6 @@ namespace SerilogPlay.SimpleApi
 	using Serilog;
 	using System;
 	using System.Threading.Tasks;
-
 
 	public class CustomErrorMiddleware
 	{
@@ -33,8 +31,8 @@ namespace SerilogPlay.SimpleApi
 		private static Task HandleExceptionAsync(HttpContext context, Exception exception)
 		{
 			//var logger = loggerFactory.CreateLogger("Serilog Global exception logger");
+			Log.Fatal(exception: exception, messageTemplate: exception.Message);
 			IExceptionHandlerFeature exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
-			Log.Fatal(exception: exception, exception.Message);
 			if (exceptionHandlerFeature != null && exceptionHandlerFeature.Error != null)
 			{
 				//logger.LogError(eventId: StatusCodes.Status500InternalServerError, exception: exceptionHandlerFeature.Error, message: exceptionHandlerFeature.Error.Message);
