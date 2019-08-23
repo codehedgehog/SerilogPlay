@@ -2,6 +2,11 @@
 	ViewData["Title"] = "About";
 }
 <h2>@ViewData["Title"]</h2>
-<h3>@ViewData["Message"]</h3>
 
-<p>Use this area to provide additional information.</p>
+
+@if (Context.User != null && Context.User.Identity.IsAuthenticated)
+{
+	<h3>Hello, <b>@User.Identity.Name</b></h3>
+}
+
+<p>@ViewData["Message"]</p>

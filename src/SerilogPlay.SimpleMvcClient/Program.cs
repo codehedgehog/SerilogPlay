@@ -6,16 +6,15 @@
 	using Microsoft.Extensions.Configuration;
 	using Microsoft.Extensions.Logging;
 	using Serilog;
-	using Serilog.Core;
+	using Serilog.Context;
+	using Serilog.Enrichers.AspnetcoreHttpcontext;
 	using Serilog.Events;
 	using Serilog.Exceptions;
-	using SerilogPlay.SimpleMvcClient.Models;
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
 	using System.Linq;
 	using System.Reflection;
-	using Serilog.Formatting.Compact;
-	using Serilog.Enrichers.AspnetcoreHttpcontext;
 
 	public class Program
 	{
@@ -66,41 +65,81 @@
 				 {
 					 var name = Assembly.GetExecutingAssembly().GetName();
 					 loggerConfig
-						 .MinimumLevel.Debug()
-						 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
 						 .Enrich.FromLogContext()
 						 .Enrich.WithExceptionDetails()
-						 .Enrich.WithMachineName()
+						 .Enrich.WithAspnetcoreHttpcontext(serviceProvider: provider, customMethod: CustomEnricherLogic)
 						 .Enrich.WithProperty("Assembly", $"{name.Name}")
 						 .Enrich.WithProperty("Version", $"{name.Version}")
-						 .Enrich.WithAspnetcoreHttpcontext(provider)
+						 .Enrich.WithMachineName()
 						 .Enrich.WithThreadId()
 						 .ReadFrom.Configuration(Configuration)
 						 .WriteTo.Console();
 				 });
-
 		}
 
-		public static void AddCustomContextInfo(IHttpContextAccessor ctx, LogEvent logEvent, ILogEventPropertyFactory pf)
+		private static CustomEnricherHttpContextInfo CustomEnricherLogic(IHttpContextAccessor ctx) // LogEvent logEvent, ILogEventPropertyFactory pf
 		{
-			var context = ctx.HttpContext;
-			if (context == null) return;
+			HttpContext context = ctx.HttpContext;
+			if (context == null) return null;
 
-			var userInfo = context.Items["my-custom-info"] as UserInfo;
-			if (userInfo == null)
+			CustomEnricherHttpContextInfo theInfo = new CustomEnricherHttpContextInfo()
 			{
-				var user = context.User.Identity;
-				if (user == null || !user.IsAuthenticated) return;
-				var i = 0;
-				userInfo = new UserInfo
-				{
-					Name = user.Name,
-					Claims = context.User.Claims.ToDictionary(x => $"{x.Type} ({i++})", y => y.Value)
-				};
-				context.Items["my-custom-info"] = userInfo;
+				Path = context.Request.Path.ToString(),
+				Host = context.Request.Host.ToString(),
+				Method = context.Request.Method,
+				RemoteIpAddress = context.Connection.RemoteIpAddress.MapToIPv4().ToString(),
+				Scheme = context.Request.Scheme,
+				QueryString = (context.Request.QueryString.HasValue) ? context.Request.QueryString.Value : null
+			};
+			LogContext.PushProperty("FullRequest", $"{theInfo.Method} {theInfo.Scheme}://{theInfo.Host.Trim('/')}{theInfo.Path}{theInfo.QueryString}");
+			if (!string.IsNullOrWhiteSpace(theInfo.RemoteIpAddress)) LogContext.PushProperty("RemoteIPAddress", theInfo.RemoteIpAddress);
+			var currentUser = context.User;
+			if (currentUser != null && currentUser.Identity != null && currentUser.Identity.IsAuthenticated)
+			{
+				theInfo.CurrentUserName = currentUser.Identity.Name;
+				LogContext.PushProperty("CurrentUserName", theInfo.CurrentUserName);
+				int i = 0;
+				theInfo.UserClaims = currentUser.Claims.ToDictionary(x => $"{x.Type} ({i++})", y => y.Value);
+				//myInfo.UserClaims = currentUser.Claims.Select(a => new KeyValuePair<string, string>(a.Type, a.Value)).ToList();
 			}
-
-			logEvent.AddPropertyIfAbsent(pf.CreateProperty("UserInfo", userInfo, true));
+			if (context.Request.Query != null && context.Request.Query.Count > 0)
+			{
+				int i = 0;
+				theInfo.Query = context.Request.Query.Select(q => new KeyValuePair<string, string>(q.Key, q.Value)).ToList();
+			}
+			if (context.Request.Headers.ContainsKey("X-Forwarded-For")) theInfo.RemoteIpAddress = context.Request.Headers["X-Forwarded-For"];
+			if (context.Request.Headers.ContainsKey("User-Agent"))
+			{
+				theInfo.UserAgent = context.Request.Headers["User-Agent"];
+				LogContext.PushProperty("UserAgent", theInfo.UserAgent);
+			}
+			if (context.Request.Headers.ContainsKey("Referer"))
+			{
+				theInfo.Referer = context.Request.Headers["Referer"];
+				LogContext.PushProperty("Referer", theInfo.Referer);
+			}
+			if (context.Request.Headers.ContainsKey("X-Original-For")) theInfo.XOriginalFor = context.Request.Headers["X-Original-For"];
+			if (context.Request.Headers.ContainsKey("X-Original-Proto")) theInfo.XOriginalProto = context.Request.Headers["X-Original-Proto"];
+			//logEvent.AddPropertyIfAbsent(pf.CreateProperty("UserInfo", myInfo, true));
+			return theInfo;
 		}
+
+		private class CustomEnricherHttpContextInfo
+		{
+			public string Path { get; set; }
+			public string Host { get; set; }
+			public string Method { get; set; }
+			public string RemoteIpAddress { get; set; }
+			public string CurrentUserName { get; set; }
+			public Dictionary<string, string> UserClaims { get; set; } //public List<KeyValuePair<string, string>> UserClaims { get; set; }
+			public string QueryString { get; set; }
+			public List<KeyValuePair<string, string>> Query { get; set; }
+			public string Referer { get; set; }
+			public string UserAgent { get; set; }
+			public string Scheme { get; set; }
+			public string XOriginalFor { get; set; }
+			public string XOriginalProto { get; set; }
+		}
+
 	}
 }

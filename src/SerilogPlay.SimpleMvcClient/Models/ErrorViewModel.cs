@@ -12,6 +12,8 @@ namespace SerilogPlay.SimpleMvcClient.Models
 
 		public string ErrorStackTrace { get; set; }
 
+		public string ErrorData { get; set; }
+
 		public string OriginalPath { get; set; }
 
 		public string OriginalPathBase { get; set; }
@@ -37,5 +39,7 @@ namespace SerilogPlay.SimpleMvcClient.Models
 		public bool ShowOriginalQueryString => !string.IsNullOrWhiteSpace(OriginalQueryString);
 
 		public bool ShowRequestId => !string.IsNullOrWhiteSpace(RequestId);
+
+		public bool ShowErrorData => !string.IsNullOrWhiteSpace(ErrorData);
 	}
 }

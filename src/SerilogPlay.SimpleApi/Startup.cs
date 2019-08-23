@@ -31,6 +31,8 @@
 			app.UseHsts();
 			app.UseHttpsRedirection();
 			app.UseAuthentication();
+			app.UseStatusCodePagesWithReExecute("/apierror/{0}");
+			//appBuilder.UseExceptionHandler("/apierror/500");
 			app.UseMiddleware<CustomErrorMiddleware>();
 			app.UseMvc();
 		}

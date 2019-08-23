@@ -4,7 +4,8 @@
 	using Microsoft.AspNetCore.Authorization;
 	using Microsoft.AspNetCore.Diagnostics;
 	using Microsoft.AspNetCore.Mvc;
-	using Newtonsoft.Json.Linq;
+		using Newtonsoft.Json;
+		using Newtonsoft.Json.Linq;
 	using Serilog;
 	using SerilogPlay.SimpleMvcClient.Models;
 	using System;
@@ -25,15 +26,14 @@
 
 		public IActionResult About()
 		{
-			var x = User;
-			Log.Information("We got here....");
-			ViewData["Message"] = "Your application description page.";
+			Log.Information("We got here at the About page....");
+			ViewData["Message"] = "SerilogPlay is to explore everything about Serilog and Exception Handlers.";
 			return View();
 		}
 
-		[Authorize]
-		public IActionResult UnauthorizedPage()
+		public IActionResult Contact()
 		{
+			Log.Information("We got here at the Contact page....");
 			ViewData["Message"] = "Your contact page.";
 			return View();
 		}
@@ -86,7 +86,7 @@
 		}
 
 		[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-		public IActionResult Error()
+		public IActionResult Error(int? statusCode = null)
 		{
 			ErrorViewModel modelResult = new ErrorViewModel() { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier };
 			if (HttpContext.Features.Get<IStatusCodeReExecuteFeature>() is StatusCodeReExecuteFeature reExecuteFeature)
@@ -94,14 +94,22 @@
 				modelResult.OriginalPath = reExecuteFeature?.OriginalPath;
 				modelResult.OriginalPathBase = reExecuteFeature?.OriginalPathBase;
 				modelResult.OriginalQueryString = reExecuteFeature?.OriginalQueryString;
+				Log.Warning($"Status Code: {statusCode} from request {modelResult.OriginalPathBase}{modelResult.OriginalPath}{modelResult.OriginalQueryString} Request ID: {modelResult.RequestId}");
 			}
 			if (HttpContext.Features.Get<IExceptionHandlerPathFeature>() is ExceptionHandlerFeature exceptionFeature)
 			{
-				modelResult.RouteOfException = exceptionFeature?.Path;
-				modelResult.ErrorSource = exceptionFeature?.Error?.Source;
-				modelResult.ErrorTargetSiteName = exceptionFeature?.Error?.TargetSite.Name;
-				modelResult.ErrorStackTrace = exceptionFeature?.Error?.StackTrace;
-				modelResult.ErrorMessage = $"{exceptionFeature?.Error?.InnerException?.Message} | {exceptionFeature.Error?.Message}";
+				if (exceptionFeature != null)
+				{
+					modelResult.RouteOfException = exceptionFeature.Path;
+					if (exceptionFeature.Error != null)
+					{
+						modelResult.ErrorTargetSiteName = exceptionFeature.Error.TargetSite.Name;
+						modelResult.ErrorMessage = $"{exceptionFeature.Error.InnerException?.Message} | {exceptionFeature.Error?.Message}";
+						modelResult.ErrorSource = exceptionFeature.Error.Source;
+						modelResult.ErrorStackTrace = exceptionFeature.Error.StackTrace;
+						modelResult.ErrorData = JsonConvert.SerializeObject(exceptionFeature.Error.Data);
+					}
+				}
 			}
 			return View(viewName: "Error", model: modelResult);
 		}
@@ -133,7 +141,6 @@
 				{
 					ex.Data.Add("API Error", error);
 					ex.Data.Add("API ErrorId", id);
-					ex.Data.Add("API Status", (int)response.StatusCode);
 				}
 				//Log.Warning(ex,
 				//    "Got non-success response from API {ApiStatus}--{ApiError}--{ApiErrorId}--{ApiUrl}",

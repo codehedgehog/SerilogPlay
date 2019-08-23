@@ -13,11 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\UserInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="appsettings.Development.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Readme.Md" />
+    <None Remove="Readme.md" />
   </ItemGroup>
 
   <ItemGroup>
