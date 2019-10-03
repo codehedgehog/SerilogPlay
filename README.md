@@ -1,5 +1,19 @@
 ﻿# SerilogPlay
 
+
+## To Be Explored
+* [2018-07 Centralized exception handling and request validation in ASP.NET Core](https://www.strathweb.com/2018/07/centralized-exception-handling-and-request-validation-in-asp-net-core/)
+* [2017-04 Query JSON Data in SQL Server 2016](https://msdn.microsoft.com/magazine/mt797647)
+* [Diagnostic logging in ASP.NET Core](http://nblumhardt.com/2015/05/diagnostic-logging-in-dnx-asp-net-5/)
+* [IdentityServer3 Logging & Monitoring using Serilog and Seq](http://leastprivilege.com/2015/10/22/identityserver3-logging-monitoring-using-serilog-and-seq/)
+
+
+## Inspired by and adapted from
+* [2018-05 Pluralsight: Serilog Enrichers: Getting Common Information into Log Entries (Erik Dahl)](https://app.pluralsight.com/library/courses/serilog-enrichers-getting-info-into-log-entries)
+* [2018-11 ASP.NET Core and Web API: A Custom Wrapper for Managing Exceptions and Consistent Responses](https://www.codeproject.com/Articles/1248022/ASP-NET-Core-and-Web-API-A-Custom-Wrapper-for-Mana)
+* [2017-03, Re-execute the middleware pipeline with the StatusCodePages Middleware to create custom error pages (Andrew Lock)](https://andrewlock.net/re-execute-the-middleware-pipeline-with-the-statuscodepages-middleware-to-create-custom-error-pages/)
+
+
 ## Sample code
 
 `Email Sink` is relying on the `PeriodicBatching Sink` which following its configuration buffers the logs and periodically (or when you hit the `batchPostingLimit` threshold) writes them to the sink.  
