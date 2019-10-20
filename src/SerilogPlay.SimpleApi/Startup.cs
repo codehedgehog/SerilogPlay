@@ -4,10 +4,7 @@
 	using Microsoft.AspNetCore.Authentication.JwtBearer;
 	using Microsoft.AspNetCore.Builder;
 	using Microsoft.AspNetCore.Hosting;
-	using Microsoft.AspNetCore.Mvc;
 	using Microsoft.Extensions.DependencyInjection;
-	using Newtonsoft.Json;
-	using Newtonsoft.Json.Serialization;
 	using System.IdentityModel.Tokens.Jwt;
 
 	public class Startup
@@ -19,19 +16,7 @@
 			JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 
 			services.AddMvcCore()
-							.AddAuthorization()
-							.AddJsonFormatters();
-
-			services.AddMvc()
-							.SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-							.AddJsonOptions(options =>
-							 {
-								 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
-								 options.SerializerSettings.Formatting = Formatting.Indented;
-								 options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-								 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-							 });
-
+							.AddAuthorization();
 
 			services.AddAuthentication(options =>
 								{
@@ -47,20 +32,19 @@
 								});
 		}
 
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 		{
-			//if (env.IsDevelopment())
-			//{
-			//	app.UseDeveloperExceptionPage();
-			//}
+			app.UseStatusCodePagesWithReExecute(pathFormat: "/api/error", queryFormat: "?statusCode={0}");
+			app.UseMiddleware<CustomErrorMiddleware>();
 			app.UseHsts();
 			app.UseHttpsRedirection();
+			app.UseRouting();
 			app.UseAuthentication();
-			app.UseStatusCodePagesWithReExecute(pathFormat: "/api/error", queryFormat: "?statusCode={0}");
-			//appBuilder.UseExceptionHandler("/apierror/500");
-
-			app.UseMiddleware<CustomErrorMiddleware>();
-			app.UseMvc();
+			app.UseAuthorization();
+			app.UseEndpoints(endpoints =>
+			{
+				endpoints.MapControllers();
+			});
 		}
 	}
 }

@@ -10,6 +10,7 @@
 	[ApiController]
 	public class ValuesController : Controller
 	{
+		[AllowAnonymous]
 		// GET api/values
 		[HttpGet]
 		public ActionResult<IEnumerable<string>> Get()

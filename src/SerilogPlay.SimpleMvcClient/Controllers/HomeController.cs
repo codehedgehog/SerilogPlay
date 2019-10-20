@@ -1,5 +1,6 @@
 ﻿namespace SerilogPlay.SimpleMvcClient.Controllers
 {
+	using IdentityModel.Client;
 	using Microsoft.AspNetCore.Authentication;
 	using Microsoft.AspNetCore.Authorization;
 	using Microsoft.AspNetCore.Diagnostics;
@@ -10,8 +11,6 @@
 	using SerilogPlay.SimpleMvcClient.Models;
 	using System;
 	using System.Diagnostics;
-
-	//using System.Diagnostics;
 	using System.Net.Http;
 	using System.Threading.Tasks;
 

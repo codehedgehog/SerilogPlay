@@ -8,8 +8,7 @@
 	using Serilog;
 	using Serilog.Context;
 	using Serilog.Enrichers.AspnetcoreHttpcontext;
-		using Serilog.Events;
-		using Serilog.Exceptions;
+	using Serilog.Exceptions;
 	using System;
 	using System.Collections.Generic;
 	using System.IO;
