@@ -38,11 +38,6 @@
 			//services.AddLogging(builder => builder.ClearProviders().AddSerilog(dispose: true));
 
 			services.AddRouting(options => { options.LowercaseUrls = true; });
-			services.Configure<CookiePolicyOptions>(options =>
-			{
-				options.CheckConsentNeeded = context => false;
-				options.MinimumSameSitePolicy = SameSiteMode.None;
-			});
 
 			//JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
